@@ -10,6 +10,8 @@ import threading
 import json
 import time
 from datetime import datetime
+from demo_config import demo_config_manager, ProductConfig
+from dynamic_demo_executor import DynamicDemoExecutor
 
 # Configure logging to reduce Flask output
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
@@ -24,6 +26,8 @@ app = Flask(__name__)
 voice_agent = None
 intent_agent = None
 browser_agent = None
+dynamic_demo = None
+current_demo_config = None
 
 # System state
 system_state = {
@@ -50,7 +54,7 @@ demo_state = {
 
 def initialize_agents():
     """Initialize all agents"""
-    global voice_agent, intent_agent, browser_agent, system_state
+    global voice_agent, intent_agent, browser_agent, dynamic_demo, system_state
     
     try:
         print("🔄 Initializing agents...")
@@ -61,6 +65,9 @@ def initialize_agents():
         
         # Set the agents for the browser agent
         browser_agent.set_agents(voice_agent, intent_agent)
+        
+        # Initialize Dynamic Demo Executor
+        dynamic_demo = DynamicDemoExecutor(voice_agent)
         
         system_state["initialized"] = True
         system_state["error"] = None
@@ -703,6 +710,150 @@ def stop_demo():
             'success': False,
             'message': f'Error stopping demo: {str(e)}'
         })
+
+# Demo Configuration API Routes
+@app.route('/config')
+def demo_config():
+    """Demo configuration interface for product owners"""
+    return render_template('config.html')
+
+@app.route('/api/demos/list', methods=['GET'])
+def list_demos():
+    """Get list of available demo configurations"""
+    try:
+        demos = demo_config_manager.list_configs()
+        return jsonify({
+            'success': True,
+            'demos': demos
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@app.route('/api/demos/create', methods=['POST'])
+def create_demo():
+    """Create new demo configuration"""
+    try:
+        data = request.json
+        
+        # Validate required fields
+        required_fields = ['product_name', 'base_url', 'description', 'steps']
+        for field in required_fields:
+            if field not in data:
+                return jsonify({
+                    'success': False,
+                    'message': f'Missing required field: {field}'
+                }), 400
+        
+        # Create configuration
+        config = demo_config_manager.create_config_from_input(data)
+        config_id = demo_config_manager.add_custom_config(config)
+        
+        # Optionally save to file
+        import os
+        config_dir = 'demo_configs'
+        if not os.path.exists(config_dir):
+            os.makedirs(config_dir)
+        
+        filename = f"{config_dir}/{config_id}.json"
+        demo_config_manager.save_config_to_file(config, filename)
+        
+        return jsonify({
+            'success': True,
+            'config_id': config_id,
+            'message': 'Demo configuration created successfully'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@app.route('/api/demos/get/<config_id>', methods=['GET'])
+def get_demo_config(config_id):
+    """Get specific demo configuration"""
+    try:
+        config = demo_config_manager.get_config(config_id)
+        if not config:
+            return jsonify({
+                'success': False,
+                'message': 'Demo configuration not found'
+            }), 404
+        
+        # Convert config to dictionary for JSON response
+        config_dict = {
+            'product_name': config.product_name,
+            'base_url': config.base_url,
+            'description': config.description,
+            'welcome_message': config.welcome_message,
+            'closing_message': config.closing_message,
+            'login_credentials': config.login_credentials,
+            'demo_steps': [
+                {
+                    'name': step.name,
+                    'description': step.description,
+                    'url': step.url,
+                    'action_type': step.action_type,
+                    'wait_time': step.wait_time,
+                    'voice_script': step.voice_script
+                }
+                for step in config.demo_steps
+            ]
+        }
+        
+        return jsonify({
+            'success': True,
+            'config': config_dict
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
+
+@app.route('/api/demos/run', methods=['POST'])
+def run_custom_demo():
+    """Run a specific demo configuration"""
+    try:
+        data = request.json
+        config_id = data.get('demo_id')
+        
+        if not config_id:
+            return jsonify({
+                'success': False,
+                'message': 'Demo ID is required'
+            }), 400
+        
+        config = demo_config_manager.get_config(config_id)
+        if not config:
+            return jsonify({
+                'success': False,
+                'message': 'Demo configuration not found'
+            }), 404
+        
+        # Update the dynamic demo with new configuration
+        global dynamic_demo, current_demo_config
+        if dynamic_demo:
+            dynamic_demo.set_demo_config(config)
+        
+        # Store current demo config globally
+        current_demo_config = config
+        
+        return jsonify({
+            'success': True,
+            'message': f'Demo configuration loaded: {config.product_name}',
+            'redirect': '/'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': str(e)
+        }), 500
 
 if __name__ == '__main__':
     # Initialize agents in background

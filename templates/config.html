@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Configuration - Product Owner Portal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .tabs {
+            display: flex;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .tab {
+            padding: 15px 30px;
+            background: none;
+            border: none;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+        }
+
+        .demo-steps {
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .step-item {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .step-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .step-number {
+            background: #667eea;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 15px;
+        }
+
+        .remove-step {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        .existing-demos {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .demo-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .demo-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .demo-card h3 {
+            margin-bottom: 10px;
+        }
+
+        .demo-card p {
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Demo Configuration Portal</h1>
+            <p>Create personalized product demos for your website or application</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('existing')">📋 Existing Demos</button>
+            <button class="tab" onclick="switchTab('create')">➕ Create New Demo</button>
+            <button class="tab" onclick="switchTab('import')">📁 Import Demo</button>
+        </div>
+
+        <!-- Existing Demos Tab -->
+        <div id="existing" class="tab-content active">
+            <h2>Available Demo Configurations</h2>
+            <div id="existing-demos" class="existing-demos">
+                <!-- Will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Create New Demo Tab -->
+        <div id="create" class="tab-content">
+            <h2>Create New Product Demo</h2>
+            <div id="alerts"></div>
+            
+            <form id="demo-config-form">
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="product-name">Product Name *</label>
+                            <input type="text" id="product-name" name="product_name" required 
+                                   placeholder="e.g., My E-commerce Platform">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="base-url">Base URL *</label>
+                            <input type="url" id="base-url" name="base_url" required 
+                                   placeholder="https://your-website.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Product Description *</label>
+                    <textarea id="description" name="description" rows="3" required 
+                              placeholder="Brief description of your product/service"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="welcome-message">Welcome Message</label>
+                            <textarea id="welcome-message" name="welcome_message" rows="2" 
+                                      placeholder="Custom welcome message for your demo"></textarea>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="closing-message">Closing Message</label>
+                            <textarea id="closing-message" name="closing_message" rows="2" 
+                                      placeholder="Custom closing message for your demo"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Login Credentials (Optional)</h3>
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="login-email">Email/Username</label>
+                            <input type="text" id="login-email" name="login_email" 
+                                   placeholder="demo@example.com">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="login-password">Password</label>
+                            <input type="password" id="login-password" name="login_password" 
+                                   placeholder="demo password">
+                        </div>
+                    </div>
+                </div>
+
+                <h3>Demo Steps</h3>
+                <div id="demo-steps" class="demo-steps">
+                    <!-- Steps will be added here -->
+                </div>
+
+                <button type="button" class="btn btn-secondary" onclick="addDemoStep()">
+                    ➕ Add Demo Step
+                </button>
+
+                <div style="text-align: center; margin-top: 30px;">
+                    <button type="submit" class="btn">🚀 Create Demo Configuration</button>
+                    <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Reset Form</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Import Demo Tab -->
+        <div id="import" class="tab-content">
+            <h2>Import Demo Configuration</h2>
+            <div class="form-group">
+                <label for="import-file">Select Configuration File</label>
+                <input type="file" id="import-file" accept=".json" onchange="importConfig()">
+            </div>
+            <div class="form-group">
+                <label for="import-json">Or Paste JSON Configuration</label>
+                <textarea id="import-json" rows="10" placeholder="Paste your JSON configuration here"></textarea>
+            </div>
+            <button type="button" class="btn" onclick="importFromText()">📁 Import Configuration</button>
+        </div>
+    </div>
+
+    <script>
+        let stepCounter = 0;
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Remove active class from all tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+
+            if (tabName === 'existing') {
+                loadExistingDemos();
+            }
+        }
+
+        function addDemoStep() {
+            stepCounter++;
+            const stepsContainer = document.getElementById('demo-steps');
+            
+            const stepDiv = document.createElement('div');
+            stepDiv.className = 'step-item';
+            stepDiv.innerHTML = `
+                <div class="step-header">
+                    <div style="display: flex; align-items: center;">
+                        <div class="step-number">${stepCounter}</div>
+                        <h4>Demo Step ${stepCounter}</h4>
+                    </div>
+                    <button type="button" class="remove-step" onclick="removeStep(this)">🗑️ Remove</button>
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Step Name *</label>
+                            <input type="text" name="step_name" required placeholder="e.g., Homepage">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label>URL *</label>
+                            <input type="url" name="step_url" required placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <input type="text" name="step_description" placeholder="Brief description of this step">
+                </div>
+                
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Action Type</label>
+                            <select name="step_action">
+                                <option value="navigate">Navigate</option>
+                                <option value="click">Click Element</option>
+                                <option value="form_fill">Fill Form</option>
+                                <option value="login">Login</option>
+                                <option value="showcase">Showcase</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label>Wait Time (seconds)</label>
+                            <input type="number" name="step_wait" value="3" min="1" max="30">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Voice Script</label>
+                    <textarea name="step_voice" rows="2" placeholder="What should the AI say during this step?"></textarea>
+                </div>
+            `;
+            
+            stepsContainer.appendChild(stepDiv);
+        }
+
+        function removeStep(button) {
+            button.closest('.step-item').remove();
+        }
+
+        function resetForm() {
+            document.getElementById('demo-config-form').reset();
+            document.getElementById('demo-steps').innerHTML = '';
+            stepCounter = 0;
+            showAlert('Form reset successfully!', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alertsContainer = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alertsContainer.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function loadExistingDemos() {
+            fetch('/api/demos/list')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('existing-demos');
+                    container.innerHTML = '';
+                    
+                    if (data.demos && Object.keys(data.demos).length > 0) {
+                        Object.entries(data.demos).forEach(([id, name]) => {
+                            const card = document.createElement('div');
+                            card.className = 'demo-card';
+                            card.innerHTML = `
+                                <h3>${name}</h3>
+                                <p>ID: ${id}</p>
+                                <button class="btn" onclick="runDemo('${id}')">🎬 Run Demo</button>
+                                <button class="btn btn-secondary" onclick="editDemo('${id}')">✏️ Edit</button>
+                            `;
+                            container.appendChild(card);
+                        });
+                    } else {
+                        container.innerHTML = '<p>No demo configurations found. Create your first demo!</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading demos:', error);
+                    showAlert('Error loading existing demos', 'error');
+                });
+        }
+
+        function runDemo(demoId) {
+            fetch('/api/demos/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ demo_id: demoId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Demo started successfully!', 'success');
+                    // Redirect to main demo interface
+                    window.open('/', '_blank');
+                } else {
+                    showAlert('Error starting demo: ' + data.message, 'error');
+                }
+            });
+        }
+
+        function editDemo(demoId) {
+            // Load demo configuration for editing
+            fetch(`/api/demos/get/${demoId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        populateForm(data.config);
+                        switchTab('create');
+                    }
+                });
+        }
+
+        function populateForm(config) {
+            // Populate form with existing configuration
+            document.getElementById('product-name').value = config.product_name || '';
+            document.getElementById('base-url').value = config.base_url || '';
+            document.getElementById('description').value = config.description || '';
+            document.getElementById('welcome-message').value = config.welcome_message || '';
+            document.getElementById('closing-message').value = config.closing_message || '';
+            
+            if (config.login_credentials) {
+                document.getElementById('login-email').value = config.login_credentials.email || '';
+                document.getElementById('login-password').value = config.login_credentials.password || '';
+            }
+
+            // Add steps
+            const stepsContainer = document.getElementById('demo-steps');
+            stepsContainer.innerHTML = '';
+            stepCounter = 0;
+
+            if (config.demo_steps) {
+                config.demo_steps.forEach(step => {
+                    addDemoStep();
+                    const lastStep = stepsContainer.lastElementChild;
+                    lastStep.querySelector('[name="step_name"]').value = step.name || '';
+                    lastStep.querySelector('[name="step_url"]').value = step.url || '';
+                    lastStep.querySelector('[name="step_description"]').value = step.description || '';
+                    lastStep.querySelector('[name="step_action"]').value = step.action_type || 'navigate';
+                    lastStep.querySelector('[name="step_wait"]').value = step.wait_time || 3;
+                    lastStep.querySelector('[name="step_voice"]').value = step.voice_script || '';
+                });
+            }
+        }
+
+        // Form submission
+        document.getElementById('demo-config-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const config = {
+                product_name: formData.get('product_name'),
+                base_url: formData.get('base_url'),
+                description: formData.get('description'),
+                welcome_message: formData.get('welcome_message'),
+                closing_message: formData.get('closing_message'),
+                steps: []
+            };
+
+            // Add login credentials if provided
+            if (formData.get('login_email')) {
+                config.login_credentials = {
+                    email: formData.get('login_email'),
+                    password: formData.get('login_password')
+                };
+            }
+
+            // Collect demo steps
+            const stepItems = document.querySelectorAll('.step-item');
+            stepItems.forEach(stepItem => {
+                const step = {
+                    name: stepItem.querySelector('[name="step_name"]').value,
+                    url: stepItem.querySelector('[name="step_url"]').value,
+                    description: stepItem.querySelector('[name="step_description"]').value,
+                    action_type: stepItem.querySelector('[name="step_action"]').value,
+                    wait_time: parseInt(stepItem.querySelector('[name="step_wait"]').value),
+                    voice_script: stepItem.querySelector('[name="step_voice"]').value
+                };
+                config.steps.push(step);
+            });
+
+            // Submit configuration
+            fetch('/api/demos/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showAlert('Demo configuration created successfully!', 'success');
+                    resetForm();
+                    switchTab('existing');
+                } else {
+                    showAlert('Error creating demo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showAlert('Error: ' + error.message, 'error');
+            });
+        });
+
+        // Add initial demo step
+        addDemoStep();
+
+        // Load existing demos on page load
+        loadExistingDemos();
+    </script>
+</body>
+</html>

@@ -48,6 +48,99 @@
         }
 
         .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .navigation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1rem 0;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            font-weight: 600;
+        }
+
+        .nav-brand i {
+            font-size: 1.5rem;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            background: transparent;
+            border: 1px solid transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--glass-bg);
+            border-color: var(--glass-border);
+            transform: translateY(-2px);
+        }
+
+        .nav-link.active {
+            color: var(--text-primary);
+            background: var(--accent-gradient);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-link i {
+            font-size: 1rem;
+        }
+
+        .container {
+            margin-top: 100px; /* Account for fixed navigation */
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 2rem;
+        }
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
             border-bottom: 1px solid var(--glass-border);
@@ -524,6 +617,76 @@
             }
         }
 
+        /* Demo Configuration Styles */
+        .demo-config-section {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .config-selector {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .config-selector label {
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        .config-select {
+            padding: 0.75rem 1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .config-select:focus {
+            outline: none;
+            border-color: rgba(79, 172, 254, 0.5);
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .config-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .config-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .config-item strong {
+            color: var(--text-primary);
+        }
+
+        .config-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .config-actions .btn {
+            flex: 1;
+        }
+
         /* Demo Controls Styles */
         .demo-controls {
             display: none;
@@ -619,6 +782,30 @@
         </div>
     </div>
 
+    <!-- Navigation Header -->
+    <nav class="navigation">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <i class="fas fa-robot"></i>
+                <span>Interactive Demo System</span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="nav-link active">
+                    <i class="fas fa-play"></i>
+                    Demo
+                </a>
+                <a href="/config" class="nav-link">
+                    <i class="fas fa-cog"></i>
+                    Configure
+                </a>
+                <a href="/qa_test_page" class="nav-link">
+                    <i class="fas fa-question-circle"></i>
+                    Q&A Test
+                </a>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
         <div class="main-grid">
             <div class="card voice-panel">
@@ -646,6 +833,42 @@
                     <button class="btn btn-primary" onclick="executeCommand()">
                         <i class="fas fa-play"></i>
                         Execute Command
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-cogs"></i>
+                Demo Configuration
+            </h3>
+            <div class="demo-config-section">
+                <div class="config-selector">
+                    <label for="demoSelect">Select Demo:</label>
+                    <select id="demoSelect" class="config-select" onchange="loadDemoConfig()">
+                        <option value="">Loading configurations...</option>
+                    </select>
+                </div>
+                <div class="config-info" id="configInfo">
+                    <div class="config-item">
+                        <strong>Product:</strong> <span id="configProduct">-</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Description:</strong> <span id="configDescription">-</span>
+                    </div>
+                    <div class="config-item">
+                        <strong>Steps:</strong> <span id="configSteps">-</span>
+                    </div>
+                </div>
+                <div class="config-actions">
+                    <button class="btn btn-secondary" onclick="window.open('/config', '_blank')">
+                        <i class="fas fa-plus"></i>
+                        Create New Demo
+                    </button>
+                    <button class="btn btn-primary" onclick="startDynamicDemo()" id="startDynamicBtn" disabled>
+                        <i class="fas fa-play"></i>
+                        Start Selected Demo
                     </button>
                 </div>
             </div>
@@ -1206,7 +1429,158 @@
         document.addEventListener('DOMContentLoaded', function() {
             checkStatus();
             setInterval(checkStatus, 5000);
+            
+            // Load demo configurations on page load
+            loadDemoConfigurations();
         });
+
+        // Dynamic Demo Configuration Functions
+        let availableDemos = {};
+        let selectedDemoConfig = null;
+
+        function loadDemoConfigurations() {
+            fetch('/api/demos/list')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        availableDemos = data.demos;
+                        populateDemoSelector();
+                    } else {
+                        showMessage('Failed to load demo configurations', 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading demo configurations:', error);
+                    showMessage('Error loading demo configurations', 'error');
+                });
+        }
+
+        function populateDemoSelector() {
+            const selector = document.getElementById('demoSelect');
+            selector.innerHTML = '<option value="">Select a demo configuration...</option>';
+            
+            Object.entries(availableDemos).forEach(([id, name]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                selector.appendChild(option);
+            });
+        }
+
+        function loadDemoConfig() {
+            const selector = document.getElementById('demoSelect');
+            const configId = selector.value;
+            
+            if (!configId) {
+                // Clear config info
+                document.getElementById('configProduct').textContent = '-';
+                document.getElementById('configDescription').textContent = '-';
+                document.getElementById('configSteps').textContent = '-';
+                document.getElementById('startDynamicBtn').disabled = true;
+                selectedDemoConfig = null;
+                return;
+            }
+
+            fetch(`/api/demos/get/${configId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        selectedDemoConfig = data.config;
+                        updateConfigInfo(data.config);
+                        document.getElementById('startDynamicBtn').disabled = false;
+                        showMessage(`Loaded configuration: ${data.config.product_name}`, 'success');
+                    } else {
+                        showMessage('Failed to load demo configuration', 'error');
+                        document.getElementById('startDynamicBtn').disabled = true;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading demo configuration:', error);
+                    showMessage('Error loading demo configuration', 'error');
+                    document.getElementById('startDynamicBtn').disabled = true;
+                });
+        }
+
+        function updateConfigInfo(config) {
+            document.getElementById('configProduct').textContent = config.product_name || '-';
+            document.getElementById('configDescription').textContent = config.description || '-';
+            document.getElementById('configSteps').textContent = config.demo_steps ? config.demo_steps.length : '-';
+        }
+
+        function startDynamicDemo() {
+            if (!selectedDemoConfig) {
+                showMessage('Please select a demo configuration first', 'error');
+                return;
+            }
+
+            const selector = document.getElementById('demoSelect');
+            const configId = selector.value;
+
+            showMessage(`Starting dynamic demo: ${selectedDemoConfig.product_name}...`, 'info');
+
+            // First, load the demo configuration
+            fetch('/api/demos/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ demo_id: configId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`Demo configuration loaded: ${selectedDemoConfig.product_name}`, 'success');
+                    // Now start the actual demo
+                    return fetch('/api/demo/start_dynamic', { method: 'POST' });
+                } else {
+                    throw new Error(data.message);
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`Dynamic demo started: ${data.product_name}! You can ask questions anytime during the demo.`, 'success');
+                    // Enable demo controls
+                    toggleDemoControls();
+                } else {
+                    showMessage('Failed to start dynamic demo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error starting dynamic demo:', error);
+                showMessage('Error starting dynamic demo: ' + error.message, 'error');
+            });
+        }
+
+        function askDemoQuestion() {
+            if (!selectedDemoConfig) {
+                showMessage('No demo configuration loaded', 'error');
+                return;
+            }
+
+            const question = prompt('What would you like to know about the demo?');
+            if (!question || !question.trim()) {
+                return;
+            }
+
+            showMessage(`Asking: "${question}"`, 'info');
+
+            fetch('/api/demo/question', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question: question.trim() })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`Q: ${data.question}\nA: ${data.answer}`, 'success');
+                } else {
+                    showMessage('Failed to get answer: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error asking question:', error);
+                showMessage('Error asking question: ' + error.message, 'error');
+            });
+        }
     </script>
 </body>
 </html>
