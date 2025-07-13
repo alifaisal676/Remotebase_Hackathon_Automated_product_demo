@@ -1,0 +1,25 @@
+# Audio dependencies
+pygame>=2.1.0
+playsound>=1.3.0
+
+# Web framework
+Flask==3.0.0
+
+# Core dependencies - Your Setup (Windows Compatible)
+SpeechRecognition==3.10.0  # FREE Google STT (replaces OpenAI Whisper)
+# pyaudio==0.2.11  # Commented out - causes build issues on Windows
+groq==0.30.0  # Your Groq API
+elevenlabs==1.8.0  # Your ElevenLabs API
+selenium==4.25.0
+webdriver-manager==4.0.2
+
+# Utilities
+pydantic==2.9.2
+python-dotenv==1.0.1
+
+# Logging and monitoring
+colorlog==6.8.2
+rich==13.9.2
+
+# Optional: For advanced features
+requests==2.32.3

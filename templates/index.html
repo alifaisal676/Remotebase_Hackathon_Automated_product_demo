@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GIKI Transport - Voice Interface</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #2ed573 0%, #17c0eb 100%);
+            --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --shadow-hover: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="0.5"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)" /></svg>');
+            z-index: -1;
+            opacity: 0.3;
+        }
+
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+            box-shadow: var(--shadow);
+        }
+
+        .logo-text h1 {
+            color: var(--text-primary);
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .logo-text p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 400;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--glass-bg);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4757;
+            transition: all 0.3s ease;
+        }
+
+        .status-dot.active {
+            background: #2ed573;
+            box-shadow: 0 0 10px rgba(46, 213, 115, 0.5);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .card-title {
+            color: var(--text-primary);
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .voice-panel {
+            text-align: center;
+        }
+
+        .voice-button {
+            width: 140px;
+            height: 140px;
+            border-radius: 50%;
+            border: none;
+            background: var(--danger-gradient);
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow);
+            margin-bottom: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .voice-button:hover {
+            transform: scale(1.05);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .voice-button.listening {
+            background: var(--success-gradient);
+            animation: pulse-button 1s infinite;
+        }
+
+        .voice-button.disabled {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .voice-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: all 0.3s ease;
+        }
+
+        .voice-button:hover::before {
+            width: 90%;
+            height: 90%;
+        }
+
+        @keyframes pulse-button {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .voice-status {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 400;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .input-field::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.3s ease;
+        }
+
+        .btn:hover::before {
+            width: 100%;
+        }
+
+        .quick-commands-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .quick-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+        }
+
+        .quick-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .quick-btn i {
+            width: 24px;
+            text-align: center;
+            opacity: 0.8;
+        }
+
+        .demo-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 15px rgba(102,126,234,0.4);
+        }
+
+        .demo-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102,126,234,0.6);
+        }
+
+        .response-panel {
+            grid-column: 1 / -1;
+            min-height: 200px;
+        }
+
+        .response-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 1rem;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 1rem 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid transparent;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+            background: rgba(46, 213, 115, 0.1);
+            border-color: rgba(46, 213, 115, 0.3);
+            color: #2ed573;
+        }
+
+        .message.error {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: rgba(231, 76, 60, 0.3);
+            color: #ff6b6b;
+        }
+
+        .message.info {
+            background: rgba(79, 172, 254, 0.1);
+            border-color: rgba(79, 172, 254, 0.3);
+            color: #4facfe;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--glass-border);
+            border-radius: 50%;
+            border-top-color: var(--text-primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            border: 1px solid var(--glass-border);
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .feature-title {
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .status-indicators {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
+            .main-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .voice-button {
+                width: 120px;
+                height: 120px;
+                font-size: 1rem;
+            }
+
+            .quick-commands-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .demo-controls {
+                padding: 15px;
+                margin: 15px 0;
+            }
+            
+            .demo-control-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+                margin: 5px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .logo-text h1 {
+                font-size: 1.4rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .voice-button {
+                width: 100px;
+                height: 100px;
+                font-size: 0.9rem;
+            }
+        }
+
+        /* Demo Controls Styles */
+        .demo-controls {
+            display: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin: 20px 0;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .demo-control-btn {
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 12px 24px;
+            margin: 10px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .demo-control-btn:hover {
+            background: rgba(255,255,255,0.3);
+            border-color: rgba(255,255,255,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .demo-control-btn.listening {
+            background: #ff6b6b;
+            border-color: #ff5252;
+            animation: pulse 1.5s infinite;
+        }
+
+        .demo-control-btn.stop-btn {
+            background: rgba(255,107,107,0.2);
+            border-color: rgba(255,107,107,0.5);
+        }
+
+        .demo-control-btn.stop-btn:hover {
+            background: rgba(255,107,107,0.3);
+            border-color: rgba(255,107,107,0.7);
+        }
+
+        .demo-status {
+            margin-top: 15px;
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .demo-status i {
+            margin-right: 8px;
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-bus"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>GIKI Transport</h1>
+                    <p>AI-Powered Voice Interface</p>
+                </div>
+            </div>
+            <div class="status-indicators">
+                <div class="status-item">
+                    <div class="status-dot" id="systemStatus"></div>
+                    <span id="systemStatusText">Initializing...</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="voiceStatus"></div>
+                    <span id="voiceStatusText">Voice Ready</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-grid">
+            <div class="card voice-panel">
+                <h3 class="card-title">
+                    <i class="fas fa-microphone"></i>
+                    Voice Command
+                </h3>
+                <button class="voice-button disabled" id="voiceBtn" onclick="toggleVoice()">
+                    <i class="fas fa-microphone"></i>
+                    <div>SPEAK</div>
+                </button>
+                <div class="voice-status">
+                    Click the microphone and speak your command
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="card-title">
+                    <i class="fas fa-keyboard"></i>
+                    Manual Command
+                </h3>
+                <div class="input-group">
+                    <input type="text" class="input-field" id="commandInput" 
+                           placeholder="Type your command here..." onkeypress="handleKeyPress(event)">
+                    <button class="btn btn-primary" onclick="executeCommand()">
+                        <i class="fas fa-play"></i>
+                        Execute Command
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="card-title">
+                <i class="fas fa-bolt"></i>
+                Quick Commands
+            </h3>
+            <div class="quick-commands-grid">
+                <button class="quick-btn" onclick="executeQuickCommand('go to signin')">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Go to Sign In Page
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('sign in')">
+                    <i class="fas fa-lock"></i>
+                    Sign In (Auto-credentials)
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('go to signup')">
+                    <i class="fas fa-user-plus"></i>
+                    Go to Sign Up Page
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('go to giki transport system')">
+                    <i class="fas fa-home"></i>
+                    Go to Dashboard
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('go to my profile')">
+                    <i class="fas fa-user"></i>
+                    View My Profile
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('go to my tickets')">
+                    <i class="fas fa-ticket-alt"></i>
+                    View My Tickets
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('book ticket')">
+                    <i class="fas fa-shopping-cart"></i>
+                    Book Ticket
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('book now')">
+                    <i class="fas fa-bus"></i>
+                    Book Transport Now
+                </button>
+                <button class="quick-btn demo-btn" onclick="startInteractiveDemo()">
+                    <i class="fas fa-play-circle"></i>
+                    Interactive Demo
+                </button>
+                <button class="quick-btn demo-btn" onclick="showQATest()">
+                    <i class="fas fa-microphone-alt"></i>
+                    Q&A Test
+                </button>
+                <button class="quick-btn" onclick="toggleDemoControls()">
+                    <i class="fas fa-eye"></i>
+                    Show Demo Controls
+                </button>
+                <button class="quick-btn" onclick="executeQuickCommand('what is giki transport system')">
+                    <i class="fas fa-question-circle"></i>
+                    About GIKI Transport
+                </button>
+            </div>
+        </div>
+
+        <div class="card response-panel">
+            <h3 class="card-title">
+                <i class="fas fa-comments"></i>
+                System Response
+            </h3>
+            <div class="response-content" id="responseContent">
+                <div class="message info">
+                    <strong><i class="fas fa-info-circle"></i> Welcome to GIKI Transport Voice Interface!</strong><br><br>
+                    🎤 <strong>Voice Commands:</strong> Click the microphone to speak<br>
+                    ⌨️ <strong>Manual Commands:</strong> Type in the text field<br>
+                    ⚡ <strong>Quick Commands:</strong> Use the buttons above<br>
+                    🤖 <strong>AI Assistant:</strong> Ask questions about the transport system<br><br>
+                    <em>The system is ready to help you navigate GIKI Transport!</em>
+                </div>
+            </div>
+        </div>
+
+        <!-- Demo Controls (Hidden by default, shown during demo) -->
+        <div id="demo-controls" class="demo-controls" style="display: none;">
+            <h3 style="color: white; margin-bottom: 15px;">
+                <i class="fas fa-play-circle"></i> Interactive Demo Active
+            </h3>
+            <button id="question-btn" class="demo-control-btn" onmousedown="askDemoQuestion()" onmouseup="stopListening()">
+                <i class="fas fa-microphone"></i>
+                Ask Question
+            </button>
+            <button id="stop-demo-btn" class="demo-control-btn stop-btn" onclick="stopDemo()">
+                <i class="fas fa-stop"></i>
+                Stop Demo
+            </button>
+            <div id="demo-status" class="demo-status">
+                <i class="fas fa-info-circle"></i> Demo is running - press and hold microphone to ask questions
+            </div>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-microphone-alt"></i>
+                </div>
+                <div class="feature-title">Voice Recognition</div>
+                <div class="feature-description">
+                    Advanced speech-to-text technology for natural voice commands
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="feature-title">AI Assistant</div>
+                <div class="feature-description">
+                    Intelligent parsing and execution of natural language commands
+                </div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div class="feature-title">Browser Automation</div>
+                <div class="feature-description">
+                    Seamless automation of web interactions and navigation
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isListening = false;
+        let systemReady = false;
+
+        // Check system status
+        function checkStatus() {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    updateSystemStatus(data);
+                    updateVoiceStatus(data);
+                    updateLastCommand(data);
+                    
+                    if (data.error) {
+                        showMessage(data.error, 'error');
+                    }
+                })
+                .catch(error => {
+                    console.error('Status check failed:', error);
+                    showMessage('Connection error. Please refresh the page.', 'error');
+                });
+        }
+
+        function updateSystemStatus(data) {
+            const systemStatus = document.getElementById('systemStatus');
+            const systemStatusText = document.getElementById('systemStatusText');
+            const voiceBtn = document.getElementById('voiceBtn');
+            
+            if (data.initialized) {
+                systemStatus.classList.add('active');
+                systemStatusText.innerHTML = '<i class="fas fa-check"></i> System Ready';
+                voiceBtn.classList.remove('disabled');
+                systemReady = true;
+            } else {
+                systemStatus.classList.remove('active');
+                systemStatusText.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Initializing...';
+                voiceBtn.classList.add('disabled');
+                systemReady = false;
+            }
+        }
+
+        function updateVoiceStatus(data) {
+            const voiceStatus = document.getElementById('voiceStatus');
+            const voiceStatusText = document.getElementById('voiceStatusText');
+            
+            if (data.listening) {
+                voiceStatus.classList.add('active');
+                voiceStatusText.innerHTML = '<i class="fas fa-microphone"></i> Listening...';
+            } else {
+                voiceStatus.classList.remove('active');
+                voiceStatusText.innerHTML = '<i class="fas fa-microphone-slash"></i> Voice Ready';
+            }
+        }
+
+        function updateLastCommand(data) {
+            if (data.last_command) {
+                // You can add a last command display if needed
+            }
+        }
+
+        // Toggle voice recognition
+        function toggleVoice() {
+            if (!systemReady) {
+                showMessage('System not ready yet. Please wait...', 'error');
+                return;
+            }
+            
+            const voiceBtn = document.getElementById('voiceBtn');
+            
+            if (isListening) {
+                // Stop listening
+                fetch('/api/voice/stop', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        isListening = false;
+                        voiceBtn.classList.remove('listening');
+                        voiceBtn.innerHTML = '<i class="fas fa-microphone"></i><div>SPEAK</div>';
+                        showMessage('Voice recognition stopped.', 'info');
+                    })
+                    .catch(error => {
+                        showMessage('Failed to stop voice recognition.', 'error');
+                    });
+            } else {
+                // Start listening
+                fetch('/api/voice/start', { method: 'POST' })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            isListening = true;
+                            voiceBtn.classList.add('listening');
+                            voiceBtn.innerHTML = '<i class="fas fa-stop"></i><div>STOP</div>';
+                            showMessage('🎤 Listening... Speak now!', 'success');
+                        } else {
+                            showMessage(data.error || 'Failed to start voice recognition.', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        showMessage('Voice recognition failed to start.', 'error');
+                    });
+            }
+        }
+
+        // Execute manual command
+        function executeCommand() {
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+            
+            if (!command) {
+                showMessage('Please enter a command.', 'error');
+                return;
+            }
+            
+            executeQuickCommand(command);
+            input.value = '';
+        }
+
+        // Execute quick command
+        function executeQuickCommand(command) {
+            if (!systemReady) {
+                showMessage('System not ready yet. Please wait...', 'error');
+                return;
+            }
+            
+            showMessage(`🚀 Executing: "${command}"`, 'info');
+            
+            fetch('/api/execute', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ command: command })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(`✅ ${data.message}`, 'success');
+                } else {
+                    showMessage(`❌ ${data.error || 'Command failed'}`, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('❌ Network error. Please try again.', 'error');
+            });
+        }
+
+        // Handle enter key press
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                executeCommand();
+            }
+        }
+
+        // Show message
+        function showMessage(message, type) {
+            const responseContent = document.getElementById('responseContent');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            let icon = '';
+            switch(type) {
+                case 'error':
+                    icon = '<i class="fas fa-exclamation-circle"></i>';
+                    break;
+                case 'success':
+                    icon = '<i class="fas fa-check-circle"></i>';
+                    break;
+                case 'info':
+                    icon = '<i class="fas fa-info-circle"></i>';
+                    break;
+                default:
+                    icon = '<i class="fas fa-comment"></i>';
+            }
+            
+            responseContent.innerHTML = `
+                <div class="message ${type}">
+                    <strong>${icon} ${timestamp}</strong><br>
+                    ${message}
+                </div>
+            `;
+        }
+
+        // Interactive Demo Variables
+        let demoState = {
+            isActive: false,
+            isListening: false,
+            questionMode: false
+        };
+
+        // Interactive Demo Functions
+        function startInteractiveDemo() {
+            if (demoState.isActive) {
+                showMessage('Demo is already running', 'error');
+                return;
+            }
+            
+            showMessage('Starting interactive demo...', 'info');
+            
+            fetch('/api/demo/start', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    command: 'start_interactive_demo'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    demoState.isActive = true;
+                    showMessage('Interactive demo started! Press and hold the microphone button to ask questions during the demo.', 'success');
+                    updateDemoControls();
+                    monitorDemoStatus();
+                    
+                    // Force show demo controls
+                    const demoControls = document.getElementById('demo-controls');
+                    if (demoControls) {
+                        demoControls.style.display = 'block';
+                    }
+                } else {
+                    showMessage('Failed to start demo: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Error starting demo: ' + error, 'error');
+            });
+        }
+
+        function askDemoQuestion() {
+            if (!demoState.isActive) {
+                showMessage('Demo is not running', 'error');
+                return;
+            }
+            
+            if (demoState.isListening) {
+                // Stop listening
+                demoState.isListening = false;
+                showMessage('Stopped listening for question', 'info');
+                updateDemoControls();
+                return;
+            }
+            
+            // Start listening
+            demoState.isListening = true;
+            demoState.questionMode = true;
+            showMessage('Listening for your question... Release the button when done.', 'info');
+            updateDemoControls();
+            
+            // Start voice recognition
+            startVoiceRecognition(handleDemoQuestion);
+        }
+
+        function handleDemoQuestion(question) {
+            if (!question || !demoState.isActive) return;
+            
+            demoState.isListening = false;
+            demoState.questionMode = false;
+            updateDemoControls();
+            
+            showMessage('Question: ' + question, 'user');
+            showMessage('Processing your question...', 'info');
+            
+            fetch('/api/demo/question', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    question: question
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Agent: ' + data.answer, 'assistant');
+                    showMessage('Demo will continue automatically...', 'info');
+                } else {
+                    showMessage('Failed to process question: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                showMessage('Error processing question: ' + error, 'error');
+            });
+        }
+
+        function stopDemo() {
+            if (!demoState.isActive) {
+                showMessage('No demo is running', 'error');
+                return;
+            }
+            
+            fetch('/api/demo/stop', {
+                method: 'POST'
+            })
+            .then(response => response.json())
+            .then(data => {
+                demoState.isActive = false;
+                demoState.isListening = false;
+                demoState.questionMode = false;
+                updateDemoControls();
+                showMessage('Demo stopped', 'info');
+            })
+            .catch(error => {
+                showMessage('Error stopping demo: ' + error, 'error');
+            });
+        }
+
+        function updateDemoControls() {
+            // Update button states based on demo state
+            const demoSection = document.getElementById('demo-controls');
+            if (!demoSection) {
+                // Create demo controls section if it doesn't exist
+                const controlsHtml = `
+                    <div id="demo-controls" class="demo-controls">
+                        <button id="question-btn" class="demo-control-btn" onmousedown="askDemoQuestion()" onmouseup="stopListening()">
+                            <i class="fas fa-microphone"></i>
+                            Ask Question
+                        </button>
+                        <button id="stop-demo-btn" class="demo-control-btn stop-btn" onclick="stopDemo()">
+                            <i class="fas fa-stop"></i>
+                            Stop Demo
+                        </button>
+                        <div id="demo-status" class="demo-status"></div>
+                    </div>
+                `;
+                
+                // Insert after chat container
+                const chatContainer = document.querySelector('.chat-container');
+                chatContainer.insertAdjacentHTML('afterend', controlsHtml);
+            }
+            
+            // Show/hide demo controls
+            const controls = document.getElementById('demo-controls');
+            if (demoState.isActive) {
+                controls.style.display = 'block';
+                
+                // Update button states
+                const questionBtn = document.getElementById('question-btn');
+                const statusDiv = document.getElementById('demo-status');
+                
+                if (demoState.isListening) {
+                    questionBtn.classList.add('listening');
+                    questionBtn.innerHTML = '<i class="fas fa-microphone"></i> Listening...';
+                    statusDiv.innerHTML = '<i class="fas fa-circle pulse"></i> Listening for question';
+                } else {
+                    questionBtn.classList.remove('listening');
+                    questionBtn.innerHTML = '<i class="fas fa-microphone"></i> Ask Question';
+                    statusDiv.innerHTML = '<i class="fas fa-play-circle"></i> Demo running';
+                }
+            } else {
+                controls.style.display = 'none';
+            }
+        }
+
+        function stopListening() {
+            if (demoState.isListening && demoState.questionMode) {
+                demoState.isListening = false;
+                // Voice recognition will handle the rest
+            }
+        }
+
+        function toggleDemoControls() {
+            const controls = document.getElementById('demo-controls');
+            if (controls.style.display === 'none') {
+                controls.style.display = 'block';
+                showMessage('Demo controls are now visible', 'info');
+            } else {
+                controls.style.display = 'none';
+                showMessage('Demo controls are now hidden', 'info');
+            }
+        }
+
+        function monitorDemoStatus() {
+            if (!demoState.isActive) return;
+            
+            fetch('/api/demo/status')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.active) {
+                    // Demo finished
+                    demoState.isActive = false;
+                    demoState.isListening = false;
+                    demoState.questionMode = false;
+                    updateDemoControls();
+                    showMessage('Demo completed!', 'success');
+                } else {
+                    // Continue monitoring
+                    setTimeout(monitorDemoStatus, 2000);
+                }
+            })
+            .catch(error => {
+                console.error('Error monitoring demo status:', error);
+                setTimeout(monitorDemoStatus, 5000);
+            });
+        }
+
+        // Enhanced voice recognition for demo questions
+        function startVoiceRecognition(callback) {
+            if (!('webkitSpeechRecognition' in window)) {
+                showMessage('Speech recognition not supported in this browser', 'error');
+                return;
+            }
+            
+            const recognition = new webkitSpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                callback(transcript);
+            };
+            
+            recognition.onerror = function(event) {
+                showMessage('Speech recognition error: ' + event.error, 'error');
+                demoState.isListening = false;
+                updateDemoControls();
+            };
+            
+            recognition.onend = function() {
+                if (demoState.isListening) {
+                    demoState.isListening = false;
+                    updateDemoControls();
+                }
+            };
+            
+            recognition.start();
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkStatus();
+            setInterval(checkStatus, 5000);
+        });
+    </script>
+</body>
+</html>
+
+
