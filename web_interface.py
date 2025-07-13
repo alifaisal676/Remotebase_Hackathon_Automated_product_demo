@@ -12,6 +12,7 @@ import time
 from datetime import datetime
 from demo_config import demo_config_manager, ProductConfig
 from dynamic_demo_executor import DynamicDemoExecutor
+from live_meeting_integration import LiveDemoMeetingManager
 
 # Configure logging to reduce Flask output
 logging.getLogger('werkzeug').setLevel(logging.WARNING)
@@ -27,6 +28,7 @@ voice_agent = None
 intent_agent = None
 browser_agent = None
 dynamic_demo = None
+live_demo_manager = None
 current_demo_config = None
 
 # System state
@@ -68,6 +70,10 @@ def initialize_agents():
         
         # Initialize Dynamic Demo Executor
         dynamic_demo = DynamicDemoExecutor(voice_agent)
+        
+        # Initialize Live Demo Meeting Manager
+        global live_demo_manager
+        live_demo_manager = LiveDemoMeetingManager(voice_agent, dynamic_demo)
         
         system_state["initialized"] = True
         system_state["error"] = None
@@ -855,6 +861,138 @@ def run_custom_demo():
             'message': str(e)
         }), 500
 
+# Live Meeting API
+@app.route('/live-demo')
+def live_demo_page():
+    return render_template('live_demo.html')
+
+@app.route('/api/live-meeting/create', methods=['POST'])
+def create_live_meeting():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        data = request.get_json()
+        provider = data.get('provider', 'google_meet')
+        demo_config_id = data.get('demo_config_id')
+        customer_info = data.get('customer_info', {})
+        demo_config = demo_config_manager.get_config(demo_config_id) if demo_config_id else None
+        result = live_demo_manager.create_demo_meeting(provider, demo_config, customer_info)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/live-meeting/start', methods=['POST'])
+def start_live_meeting():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        data = request.get_json()
+        result = live_demo_manager.start_live_demo(data.get('join_meeting', True))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/live-meeting/run-demo', methods=['POST'])
+def run_live_demo():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        result = live_demo_manager.run_live_demo()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/live-meeting/question', methods=['POST'])
+def handle_live_question():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        data = request.get_json()
+        result = live_demo_manager.handle_live_question(data.get('question', ''), data.get('participant', 'Customer'))
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/live-meeting/end', methods=['POST'])
+def end_live_meeting():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        result = live_demo_manager.end_live_demo()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/live-meeting/status')
+def get_live_meeting_status():
+    try:
+        if not live_demo_manager:
+            return jsonify({'active': False, 'error': 'Live meeting system not initialized'})
+        status = live_demo_manager.get_session_status()
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({'active': False, 'error': str(e)}), 500
+
+# Screen Sharing API endpoints
+@app.route('/api/screen-share/start', methods=['POST'])
+def start_screen_share():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        data = request.get_json()
+        platform = data.get('platform', 'auto')
+        result = live_demo_manager.start_screen_sharing(platform)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/screen-share/stop', methods=['POST'])
+def stop_screen_share():
+    try:
+        if not live_demo_manager:
+            return jsonify({'success': False, 'error': 'Live meeting system not initialized'}), 500
+        result = live_demo_manager.stop_screen_sharing()
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/screen-share/status')
+def get_screen_share_status():
+    try:
+        if not live_demo_manager:
+            return jsonify({'available': False, 'error': 'Live meeting system not initialized'})
+        status = live_demo_manager.get_screen_share_status()
+        return jsonify(status)
+    except Exception as e:
+        return jsonify({'available': False, 'error': str(e)}), 500
+
+@app.route('/api/listen', methods=['POST'])
+def voice_listen():
+    """Voice listening endpoint for live demo questions"""
+    try:
+        if not voice_agent:
+            return jsonify({'success': False, 'error': 'Voice agent not available'}), 500
+        
+        # Listen for voice input
+        transcription = voice_agent.listen_and_transcribe()
+        
+        if transcription and transcription.strip():
+            return jsonify({
+                'success': True,
+                'text': transcription.strip()
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'No speech detected or transcription failed'
+            })
+            
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Voice recognition error: {str(e)}'
+        }), 500
+
 if __name__ == '__main__':
     # Initialize agents in background
     threading.Thread(target=initialize_agents, daemon=True).start()
@@ -871,3 +1009,4 @@ if __name__ == '__main__':
     
     # Start Flask app on port 5001
     app.run(debug=True, host='0.0.0.0', port=5001)
+

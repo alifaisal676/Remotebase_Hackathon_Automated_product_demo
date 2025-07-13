@@ -140,27 +140,78 @@ class GIKITransportActions:
             }
     
     def check_tickets(self) -> Dict[str, Any]:
-        """Check user's tickets in GIKI Transport."""
+        """Check user's tickets in GIKI Transport with multiple attempts."""
         try:
-            tickets_url = "https://giktransport.giki.edu.pk:8038/my-tickets/"
+            # Try multiple possible URLs for tickets page
+            ticket_urls = [
+                "https://giktransport.giki.edu.pk:8038/my-tickets/",
+                "https://giktransport.giki.edu.pk:8038/tickets/",
+                "https://giktransport.giki.edu.pk:8038/user/tickets/",
+                "https://giktransport.giki.edu.pk:8038/"  # Fallback to dashboard
+            ]
             
-            result = self.browser_core.navigate_to_url(tickets_url)
+            for tickets_url in ticket_urls:
+                print(f"🎫 Trying tickets URL: {tickets_url}")
+                
+                result = self.browser_core.navigate_to_url(tickets_url)
+                
+                if result["success"]:
+                    # Wait for page to load
+                    time.sleep(2)
+                    
+                    # Check if we're on a valid page
+                    current_url = self.browser_core.driver.current_url
+                    page_title = self.browser_core.driver.title
+                    
+                    # Look for tickets-related content
+                    try:
+                        # Try to find ticket-related elements
+                        ticket_elements = self.browser_core.driver.find_elements(By.XPATH, 
+                            "//*[contains(text(), 'ticket') or contains(text(), 'Ticket') or contains(text(), 'booking') or contains(text(), 'Booking')]")
+                        
+                        if ticket_elements or "ticket" in page_title.lower() or "ticket" in current_url.lower():
+                            return {
+                                "success": True,
+                                "message": f"Successfully accessed tickets page! Here you can view your transport bookings and ticket history. Page loaded: {page_title}",
+                                "action": "tickets",
+                                "url": current_url,
+                                "title": page_title
+                            }
+                        elif tickets_url == ticket_urls[-1]:  # Last URL (dashboard)
+                            # Try to find tickets link from dashboard
+                            try:
+                                ticket_link_result = self.find_tickets_from_dashboard()
+                                if ticket_link_result["success"]:
+                                    return ticket_link_result
+                            except:
+                                pass
+                            
+                            return {
+                                "success": True,
+                                "message": "Navigated to the main dashboard. From here you can access your tickets through the navigation menu or by looking for 'My Tickets' or 'Bookings' section.",
+                                "action": "tickets_dashboard",
+                                "url": current_url,
+                                "title": page_title
+                            }
+                    except Exception as e:
+                        print(f"⚠️ Error checking page content: {e}")
+                        continue
+                else:
+                    print(f"❌ Failed to navigate to {tickets_url}")
+                    continue
             
-            if result["success"]:
-                return {
-                    "success": True,
-                    "message": "Navigated to your tickets page. Here you can view all your transport tickets.",
-                    "action": "tickets",
-                    "url": tickets_url
-                }
-            else:
-                return result
+            # If all URLs failed
+            return {
+                "success": False,
+                "message": "Unable to access tickets page. The page might be temporarily unavailable or require different navigation.",
+                "error": "All ticket URL attempts failed"
+            }
                 
         except Exception as e:
             error_msg = f"Ticket check failed: {str(e)}"
             return {
                 "success": False,
-                "message": f"Failed to check tickets. {error_msg}",
+                "message": f"Failed to check tickets. The tickets page may be temporarily unavailable. Error: {error_msg}",
                 "error": error_msg
             }
     
@@ -241,4 +292,51 @@ class GIKITransportActions:
                 "success": False,
                 "message": f"Failed to navigate to booking page. {error_msg}",
                 "error": error_msg
+            }
+    
+    def find_tickets_from_dashboard(self) -> Dict[str, Any]:
+        """Try to find tickets link from the current dashboard page."""
+        try:
+            # Look for tickets/booking links on the current page
+            ticket_links = [
+                "//a[contains(text(), 'Ticket') or contains(text(), 'ticket')]",
+                "//a[contains(text(), 'Booking') or contains(text(), 'booking')]", 
+                "//a[contains(text(), 'My Tickets')]",
+                "//a[contains(@href, 'ticket')]",
+                "//a[contains(@href, 'booking')]",
+                "//button[contains(text(), 'Ticket') or contains(text(), 'ticket')]"
+            ]
+            
+            for xpath in ticket_links:
+                try:
+                    elements = self.browser_core.driver.find_elements(By.XPATH, xpath)
+                    if elements:
+                        element = elements[0]
+                        element.click()
+                        time.sleep(2)
+                        
+                        current_url = self.browser_core.driver.current_url
+                        page_title = self.browser_core.driver.title
+                        
+                        return {
+                            "success": True,
+                            "message": f"Found and clicked tickets link! Now viewing: {page_title}",
+                            "action": "tickets_found",
+                            "url": current_url,
+                            "title": page_title
+                        }
+                except Exception as e:
+                    continue
+            
+            return {
+                "success": False,
+                "message": "No tickets link found on the current page. You may need to look for a 'My Tickets' or 'Bookings' section in the navigation menu.",
+                "error": "No tickets link found"
+            }
+            
+        except Exception as e:
+            return {
+                "success": False,
+                "message": f"Error searching for tickets link: {str(e)}",
+                "error": str(e)
             }

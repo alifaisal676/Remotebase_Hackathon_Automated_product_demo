@@ -66,11 +66,13 @@ class VoiceAgent:
                 pygame.mixer.music.set_volume(1.0)  # Set maximum volume
                 self.volume = 0.8  # Default volume (0.0 to 1.0)
                 self.audio_enabled = True
+                self.is_speaking = False  # Track speaking state
                 print("✅ ElevenLabs TTS initialized successfully")
             else:
                 print("⚠️ ELEVENLABS_API_KEY not found in environment")
                 self.elevenlabs_client = None
                 self.audio_enabled = False
+                self.is_speaking = False
                 self.volume = 0.8  # Default volume even without TTS
             
         except Exception as e:
@@ -78,6 +80,7 @@ class VoiceAgent:
             print("💡 Will use text output as fallback")
             self.elevenlabs_client = None
             self.audio_enabled = False
+            self.is_speaking = False
             self.volume = 1.0 # Default volume even without TTS
         
         print("✅ VoiceAgent initialized with Google STT (FREE) + ElevenLabs TTS")
@@ -142,10 +145,12 @@ class VoiceAgent:
         Simple text-to-speech conversion and playback
         """
         try:
+            self.is_speaking = True  # Set speaking state
             print(f"🔊 Speaking: '{text[:30]}{'...' if len(text) > 30 else ''}'")
             
             if not self.elevenlabs_client or not self.audio_enabled:
                 print(f"🔊 System: {text}")  # Fallback to text output
+                self.is_speaking = False
                 return
             
             if not voice_id:
@@ -165,6 +170,8 @@ class VoiceAgent:
         except Exception as e:
             print(f"❌ Voice error: {e}")
             print(f"🔊 {text}")  # Fallback to text
+        finally:
+            self.is_speaking = False  # Clear speaking state
     
     def play_audio(self, audio_data: bytes):
         """
